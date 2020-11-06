@@ -10,3 +10,5 @@ unsigned int* BarrettReduction(unsigned int* number, unsigned int* mod, unsigned
 unsigned int* ModAdd(unsigned int* numberA, unsigned int* numberB, unsigned int* mod, unsigned int* bigMu, int bitRate, long long numberASize, long long numberBSize, long long modSize, long long muSize, long long& remainderSize);
 
 unsigned int* ModSub(unsigned int* numberA, unsigned int* numberB, unsigned int* mod, unsigned int* bigMu, int bitRate, long long numberASize, long long numberBSize, long long modSize, long long muSize, long long& remainderSize);
+
+unsigned int* ModMul(unsigned int* numberA, unsigned int* numberB, unsigned int* mod, unsigned int* bigMu, int bitRate, long long numberASize, long long numberBSize, long long modSize, long long muSize, long long& remainderSize);

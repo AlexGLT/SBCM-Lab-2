@@ -47,4 +47,12 @@ int main()
 	unsigned int* modSubstraction = ModSub(numberA, numberB, mod, bigMu, bitRate, numberASize, numberBSize, modSize, muSize, subtractionSize);
 
 	std::cout << *toHexConverting(modSubstraction, bitRate, subtractionSize) << std::endl;
+
+	std::cout << "Modular multiplication: ";
+	long long multiplicationSize;
+
+	unsigned int* modMultiplication = ModMul(numberA, numberB, mod, bigMu, bitRate, numberASize, numberBSize, modSize, muSize, multiplicationSize);
+
+	std::cout << *toHexConverting(modMultiplication, bitRate, multiplicationSize) << std::endl;
+
 }
