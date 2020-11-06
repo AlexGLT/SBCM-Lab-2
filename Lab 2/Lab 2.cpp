@@ -1,6 +1,8 @@
 ﻿#include <iostream>
 #include <string>
 
+#include "ModularArithmetic.h"
+
 int main()
 {
 	int bitRate;
