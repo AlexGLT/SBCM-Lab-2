@@ -89,3 +89,30 @@ unsigned int* ModMul(unsigned int* numberA, unsigned int* numberB, unsigned int*
 
 	return modRemainder;
 }
+
+unsigned int* ModPow(unsigned int* numberA, std::string& numberB, unsigned int* mod, unsigned int* bigMu, int bitRate, long long numberASize, long long numberBSize, long long modSize, long long muSize, long long& remainderSize)
+{
+	long long bitNumberBSize;
+	unsigned int* bitNumberB = toBigIntConverting(numberB, 1, bitNumberBSize);
+
+	remainderSize = 1;
+	auto* numberC = new unsigned int[remainderSize] { 1 };
+
+	for (int i = bitNumberBSize - 1; i >= 0; i--)
+	{
+		if (bitNumberB[i] == 1)
+		{
+			long long tempCSize;
+			unsigned int* tempC = LongMul(numberC, numberA, bitRate, remainderSize, numberASize, tempCSize);
+
+			numberC = BarrettReduction(tempC, mod, bigMu, bitRate, tempCSize, modSize, muSize, remainderSize);
+		}
+
+		long long tempASize;
+		unsigned int* tempA = LongMul(numberA, numberA, bitRate, numberASize, numberASize, tempASize);
+
+		numberA = BarrettReduction(tempA, mod, bigMu, bitRate, tempASize, modSize, muSize, numberASize);
+	}
+
+	return numberC;
+}

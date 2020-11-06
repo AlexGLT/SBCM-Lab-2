@@ -55,4 +55,10 @@ int main()
 
 	std::cout << *toHexConverting(modMultiplication, bitRate, multiplicationSize) << std::endl;
 
+	std::cout << "Modular pow: ";
+	long long powSize;
+
+	unsigned int* modPow = ModPow(numberA, numberBStr, mod, bigMu, bitRate, numberASize, numberBSize, modSize, muSize, powSize);
+
+	std::cout << *toHexConverting(modPow, bitRate, powSize) << std::endl;
 }
