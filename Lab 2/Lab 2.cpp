@@ -31,4 +31,13 @@ int main()
 	std::string modStr(number);
 
 	unsigned int* mod = toBigIntConverting(number, bitRate, modSize);
+	
+	long long muSize;
+	unsigned int* bigMu = MuCalculus(modStr, bitRate, modSize, muSize);
+
+	std::cout << "Modular addition: ";
+	long long additionSize;
+	unsigned int* modAddition = ModAdd(numberA, numberB, mod, bigMu, bitRate, numberASize, numberBSize, modSize, muSize, additionSize);
+
+	std::cout << *toHexConverting(modAddition, bitRate, additionSize) << std::endl;
 }
