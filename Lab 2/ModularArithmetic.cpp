@@ -67,3 +67,14 @@ unsigned int* ModAdd(unsigned int* numberA, unsigned int* numberB, unsigned int*
 
 	return modRemainder;
 }
+
+unsigned int* ModSub(unsigned int* numberA, unsigned int* numberB, unsigned int* mod, unsigned int* bigMu, int bitRate, long long numberASize, long long numberBSize, long long modSize, long long muSize, long long& remainderSize)
+{
+	long long numberCSize;
+
+	unsigned int* numberC = LongSub(numberA, numberB, bitRate, numberASize, numberBSize, numberCSize);
+
+	unsigned int* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate, numberCSize, modSize, muSize, remainderSize);
+
+	return modRemainder;
+}
