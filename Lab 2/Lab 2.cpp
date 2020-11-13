@@ -13,52 +13,31 @@ int main()
 
 	std::cout << "Input number A: ";
 	std::cin >> number;
-	long long numberASize;
-	std::string numberAStr(number);
-
-	unsigned int* numberA = toBigIntConverting(number, bitRate, numberASize);
+	auto* numberA = toBigIntConverting(number, bitRate);
 
 	std::cout << "Input number B: ";
 	std::cin >> number;
-	long long numberBSize;
-	std::string numberBStr(number);
-
-	unsigned int* numberB = toBigIntConverting(number, bitRate, numberBSize);
+	auto* numberB = toBigIntConverting(number, bitRate);
 
 	std::cout << "Input module: ";
 	std::cin >> number;
-	long long modSize;
-	std::string modStr(number);
+	auto* mod = toBigIntConverting(number, bitRate);
 
-	unsigned int* mod = toBigIntConverting(number, bitRate, modSize);
-	
-	long long muSize;
-	unsigned int* bigMu = MuCalculus(modStr, bitRate, modSize, muSize);
+	auto* mu = MuCalculus(mod, bitRate);
 
 	std::cout << "Modular addition: ";
-	long long additionSize;
-	unsigned int* modAddition = ModAdd(numberA, numberB, mod, bigMu, bitRate, numberASize, numberBSize, modSize, muSize, additionSize);
-
-	std::cout << *toHexConverting(modAddition, bitRate, additionSize) << std::endl;
+	auto* modAddition = ModAdd(numberA, numberB, mod, mu, bitRate);
+	std::cout << modAddition->hexString << std::endl;
 
 	std::cout << "Modular subtraction: ";
-	long long subtractionSize;
-
-	unsigned int* modSubstraction = ModSub(numberA, numberB, mod, bigMu, bitRate, numberASize, numberBSize, modSize, muSize, subtractionSize);
-
-	std::cout << *toHexConverting(modSubstraction, bitRate, subtractionSize) << std::endl;
+	auto* modSubtraction = ModSub(numberA, numberB, mod, mu, bitRate);
+	std::cout << modSubtraction->hexString << std::endl;
 
 	std::cout << "Modular multiplication: ";
-	long long multiplicationSize;
-
-	unsigned int* modMultiplication = ModMul(numberA, numberB, mod, bigMu, bitRate, numberASize, numberBSize, modSize, muSize, multiplicationSize);
-
-	std::cout << *toHexConverting(modMultiplication, bitRate, multiplicationSize) << std::endl;
+	auto* modMultiplication = ModMul(numberA, numberB, mod, mu, bitRate);
+	std::cout << modMultiplication->hexString << std::endl;
 
 	std::cout << "Modular pow: ";
-	long long powSize;
-
-	unsigned int* modPow = ModPow(numberA, numberBStr, mod, bigMu, bitRate, numberASize, numberBSize, modSize, muSize, powSize);
-
-	std::cout << *toHexConverting(modPow, bitRate, powSize) << std::endl;
+	auto* modPow = ModPow(numberA, numberB, mod, mu, bitRate);
+	std::cout << modPow->hexString << std::endl;
 }

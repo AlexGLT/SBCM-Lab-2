@@ -2,117 +2,141 @@
 
 #include "ModularArithmetic.h"
 
-unsigned int* MuCalculus(std::string& modString, int bitRate, long long modSize, long long& muSize)
+void KillLastDigits(bigInteger* number, long long count)
 {
-	long long calculusBaseSize = 2 * modSize + 1;
+	long long newNumberSize = number->size - count;
+	auto* newNumberValue = new unsigned int[newNumberSize];
 
-	auto* calculusBase = new unsigned int[calculusBaseSize];
-	std::fill(&calculusBase[0], &calculusBase[calculusBaseSize], 0);
-	calculusBase[0] = 1;
-	std::string* calculusBaseString = toHexConverting(calculusBase, bitRate, calculusBaseSize);
+	std::copy(number->value, number->value + newNumberSize, newNumberValue);
 
-	long long temp;
-	long long wholePartLength;
-	unsigned int* mu = LongDiv(*calculusBaseString, modString, bitRate, wholePartLength, temp)[0];
+	delete[] number->value;
+	number->value = NULL;
 
-	std::string muTemp = *toHexConverting(mu, 1, wholePartLength);
+	number->size = newNumberSize;
+	number->value = newNumberValue;
+}
 
-	unsigned int* bigMu = toBigIntConverting(muTemp, bitRate, muSize);
+bigInteger* MuCalculus(bigInteger* mod, int bitRate)
+{
+	auto* calculusBase = new bigInteger(2 * mod->size + 1);
+	
+	std::fill(&calculusBase->value[1], &calculusBase->value[calculusBase->size], 0);
+	calculusBase->value[0] = 1;
+
+	toHexConverting(calculusBase, bitRate);
+
+	auto* mu = LongDiv(calculusBase, mod, bitRate)[0];
+
+	freeMemory(1, calculusBase);
+
+	auto* bigMu = toBigIntConverting(mu->hexString, bitRate);
+
+	freeMemory(1, mu);
 
 	return bigMu;
 }
 
-unsigned int* BarrettReduction(unsigned int* number, unsigned int* mod, unsigned int* bigMu, int bitRate, long long numberSize, long long modSize, long long muSize, long long& remainderSize)
+bigInteger* BarrettReduction(bigInteger* number, bigInteger* mod, bigInteger* bigMu, int bitRate)
 {
-	long long newNumberSize = 2 * modSize;
-	auto* newNumber = new unsigned int[newNumberSize];
+	auto* wholePart = new bigInteger(2 * mod->size);
 
-	std::fill(&newNumber[0], &newNumber[newNumberSize - numberSize], 0);
-	std::copy(number, number + numberSize, newNumber + newNumberSize - numberSize);
+	std::fill(&wholePart->value[0], &wholePart->value[wholePart->size - number->size], 0);
+	std::copy(number->value, number->value + number->size, wholePart->value + wholePart->size - number->size);
 
-	long long qSize = newNumberSize - modSize + 1;
-	auto* q = new unsigned int[qSize];
+	KillLastDigits(wholePart, mod->size - 1);
+
+	wholePart = LongMul(wholePart, bigMu, bitRate, false, 1);
+
+	KillLastDigits(wholePart, mod->size + 1);
+
+	auto* subtractor = LongMul(wholePart, mod, bitRate, false);
 	
-	std::fill(&q[0], &q[qSize], 0);
-	std::copy(newNumber, newNumber + qSize, q);
+	freeMemory(1, wholePart);
 
-	q = LongMul(q, bigMu, bitRate, qSize, muSize, qSize);
+	auto* remainder = LongSub(number, subtractor, bitRate, false);
 
-	long long q_1Size = qSize - modSize - 1;
-	auto* q_1 = new unsigned int[q_1Size];
+	freeMemory(1, subtractor);
 
-	std::fill(&q_1[0], &q_1[q_1Size], 0);
-	std::copy(q, q + q_1Size, q_1);
-
-	long long wholePartSize;
-	unsigned int* wholePart = LongMul(q_1, mod, bitRate, q_1Size, modSize, wholePartSize);
-
-	unsigned int* modRemainder = LongSub(number, wholePart, bitRate, numberSize, wholePartSize, remainderSize);
-
-	while (LongComp(modRemainder, mod, remainderSize, modSize, false))
+	while (LongComp(remainder, mod, false))
 	{
-		modRemainder = LongSub(modRemainder, mod, bitRate, remainderSize, modSize, remainderSize);
+		remainder = LongSub(remainder, mod, bitRate, false, 1);
 	}
 
-	return modRemainder;
+	return remainder;
 }
 
-unsigned int* ModAdd(unsigned int* numberA, unsigned int* numberB, unsigned int* mod, unsigned int* bigMu, int bitRate, long long numberASize, long long numberBSize, long long modSize, long long muSize, long long& remainderSize)
+bigInteger* ModAdd(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate)
 {
-	long long numberCSize;
+	auto* numberC = LongAdd(numberA, numberB, bitRate, false);
 
-	unsigned int* numberC = LongAdd(numberA, numberB, bitRate, numberASize, numberBSize, numberCSize);
+	auto* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
 
-	unsigned int* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate, numberCSize, modSize, muSize, remainderSize);
+	freeMemory(1, numberC);
 
-	return modRemainder;
-}
-
-unsigned int* ModSub(unsigned int* numberA, unsigned int* numberB, unsigned int* mod, unsigned int* bigMu, int bitRate, long long numberASize, long long numberBSize, long long modSize, long long muSize, long long& remainderSize)
-{
-	long long numberCSize;
-
-	unsigned int* numberC = LongSub(numberA, numberB, bitRate, numberASize, numberBSize, numberCSize);
-
-	unsigned int* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate, numberCSize, modSize, muSize, remainderSize);
+	toHexConverting(modRemainder, bitRate);
 
 	return modRemainder;
 }
 
-unsigned int* ModMul(unsigned int* numberA, unsigned int* numberB, unsigned int* mod, unsigned int* bigMu, int bitRate, long long numberASize, long long numberBSize, long long modSize, long long muSize, long long& remainderSize)
+bigInteger* ModSub(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate)
 {
-	long long numberCSize;
+	auto* numberC = LongSub(numberA, numberB, bitRate, false);
 
-	unsigned int* numberC = LongMul(numberA, numberB, bitRate, numberASize, numberBSize, numberCSize);
+	auto* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
 
-	unsigned int* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate, numberCSize, modSize, muSize, remainderSize);
+	freeMemory(1, numberC);
+
+	toHexConverting(modRemainder, bitRate);
 
 	return modRemainder;
 }
 
-unsigned int* ModPow(unsigned int* numberA, std::string& numberB, unsigned int* mod, unsigned int* bigMu, int bitRate, long long numberASize, long long numberBSize, long long modSize, long long muSize, long long& remainderSize)
+bigInteger* ModMul(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate)
 {
-	long long bitNumberBSize;
-	unsigned int* bitNumberB = toBigIntConverting(numberB, 1, bitNumberBSize);
+	auto* numberC = LongMul(numberA, numberB, bitRate, false);
 
-	remainderSize = 1;
-	auto* numberC = new unsigned int[remainderSize] { 1 };
+	auto* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
 
-	for (int i = bitNumberBSize - 1; i >= 0; i--)
+	freeMemory(1, numberC);
+
+	toHexConverting(modRemainder, bitRate);
+
+	return modRemainder;
+}
+
+bigInteger* ModPow(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate)
+{
+	auto* bitNumberB = toBigIntConverting(numberB->hexString, 1);
+
+	auto* modRemainder = new bigInteger();
+	modRemainder->value[0] = static_cast<unsigned int>(1);
+
+	auto* changedNumberA = numberA;
+
+	for (long long i = bitNumberB->size - 1; i >= 0; i--)
 	{
-		if (bitNumberB[i] == 1)
+		if (bitNumberB->value[i] == 1)
 		{
-			long long tempCSize;
-			unsigned int* tempC = LongMul(numberC, numberA, bitRate, remainderSize, numberASize, tempCSize);
+			auto* tempC = LongMul(modRemainder, changedNumberA, bitRate, false);
+			
+			modRemainder = BarrettReduction(tempC, mod, bigMu, bitRate);
 
-			numberC = BarrettReduction(tempC, mod, bigMu, bitRate, tempCSize, modSize, muSize, remainderSize);
+			freeMemory(1, tempC);
 		}
 
-		long long tempASize;
-		unsigned int* tempA = LongMul(numberA, numberA, bitRate, numberASize, numberASize, tempASize);
+		auto* tempA = LongMul(changedNumberA, changedNumberA, bitRate, false);
+		
+		if (changedNumberA != numberA)
+		{
+			freeMemory(1, changedNumberA);
+		}
 
-		numberA = BarrettReduction(tempA, mod, bigMu, bitRate, tempASize, modSize, muSize, numberASize);
+		changedNumberA = BarrettReduction(tempA, mod, bigMu, bitRate);
+
+		freeMemory(1, tempA);
 	}
 
-	return numberC;
+	toHexConverting(modRemainder, bitRate);
+
+	return modRemainder;
 }
