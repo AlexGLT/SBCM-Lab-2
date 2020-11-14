@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 
 #include "ModularArithmetic.h"
 
@@ -25,13 +26,9 @@ bigInteger* MuCalculus(bigInteger* mod, int bitRate)
 
 	toHexConverting(calculusBase, bitRate);
 
-	auto* mu = LongDiv(calculusBase, mod, bitRate)[0];
+	auto bigMu = LongDiv(calculusBase, mod, bitRate, true)->first;
 
-	freeMemory(1, calculusBase);
-
-	auto* bigMu = toBigIntConverting(mu->hexString, bitRate);
-
-	freeMemory(1, mu);
+	freeMemory(calculusBase);
 
 	return bigMu;
 }
@@ -51,11 +48,11 @@ bigInteger* BarrettReduction(bigInteger* number, bigInteger* mod, bigInteger* bi
 
 	auto* subtractor = LongMul(wholePart, mod, bitRate, false);
 	
-	freeMemory(1, wholePart);
+	freeMemory(wholePart);
 
 	auto* remainder = LongSub(number, subtractor, bitRate, false);
 
-	freeMemory(1, subtractor);
+	freeMemory(subtractor);
 
 	while (LongComp(remainder, mod, false))
 	{
@@ -71,7 +68,7 @@ bigInteger* ModAdd(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bi
 
 	auto* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
 
-	freeMemory(1, numberC);
+	freeMemory(numberC);
 
 	toHexConverting(modRemainder, bitRate);
 
@@ -84,7 +81,7 @@ bigInteger* ModSub(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bi
 
 	auto* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
 
-	freeMemory(1, numberC);
+	freeMemory(numberC);
 
 	toHexConverting(modRemainder, bitRate);
 
@@ -97,7 +94,7 @@ bigInteger* ModMul(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bi
 
 	auto* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
 
-	freeMemory(1, numberC);
+	freeMemory(numberC);
 
 	toHexConverting(modRemainder, bitRate);
 
@@ -121,22 +118,148 @@ bigInteger* ModPow(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bi
 			
 			modRemainder = BarrettReduction(tempC, mod, bigMu, bitRate);
 
-			freeMemory(1, tempC);
+			freeMemory(tempC);
 		}
 
 		auto* tempA = LongMul(changedNumberA, changedNumberA, bitRate, false);
 		
 		if (changedNumberA != numberA)
 		{
-			freeMemory(1, changedNumberA);
+			freeMemory(changedNumberA);
 		}
 
 		changedNumberA = BarrettReduction(tempA, mod, bigMu, bitRate);
 
-		freeMemory(1, tempA);
+		freeMemory(tempA);
 	}
 
 	toHexConverting(modRemainder, bitRate);
 
 	return modRemainder;
+}
+
+bigInteger* GreatCommonDivisor(bigInteger* numberA, bigInteger* numberB, int bitRate)
+{
+	auto* bitGreatCommonDivisor = new bigInteger(1);
+	bitGreatCommonDivisor->value[0] = static_cast<unsigned int>(1);
+
+	auto* two = new bigInteger(1, "2");
+	two->value[0] = static_cast<unsigned int>(2);
+
+	auto* tempA = toBigIntConverting(numberA->hexString, 1);
+	auto* tempB = toBigIntConverting(numberB->hexString, 1);
+	ZeroEraser(tempA);
+	ZeroEraser(tempB);
+
+	int count = 0;
+
+	for (int i = 0; true; i++)
+	{
+		if ((tempA->size != 1) && (tempB->size != 1) && (tempA->value[tempA->size - i - 1] == 0) && (tempB->value[tempB->size - i - 1] == 0))
+		{
+			count++;
+		}
+		else
+			break;
+	}
+	
+	if (count != 0)
+	{
+		KillLastDigits(tempA, count);
+		KillLastDigits(tempB, count);
+
+		bitGreatCommonDivisor = LongShiftBitsToHigh(bitGreatCommonDivisor, count, true);
+
+		count = 0;
+	}
+
+	SmallFix(bitGreatCommonDivisor);
+	toHexConverting(bitGreatCommonDivisor, 1);
+
+	for (int i = 0; true; i++)
+	{
+		if ((tempA->size != 1) && (tempA->value[tempA->size - i - 1] == 0))
+		{
+			count++;
+		}
+		else
+			break;
+	}
+
+	if (count != 0)
+	{
+		KillLastDigits(tempB, count);
+
+		count = 0;
+	}
+
+
+	while ((tempB->size != 1) || (tempB->value[0] != 0))
+	{
+		for (int i = 0; true; i++)
+		{
+			if ((tempB->size != 1) && (tempB->value[tempB->size - i - 1] == 0))
+			{
+				count++;
+			}
+			else
+				break;
+		}
+
+		if (count != 0)
+		{
+			KillLastDigits(tempB, count);
+			
+
+			count = 0;
+		}
+
+		auto* difference = LongSub(tempA, tempB, 1, false);
+
+		if (difference->size == 1 && difference->value[0] == 0)
+		{
+			freeMemory(difference);
+			difference = LongSub(tempB, tempA, 1, false);
+		}
+
+		switch (LongComp(tempA, tempB, false))
+		{
+		case true: 
+			freeMemory(tempA); 
+			tempA = tempB;
+			tempB = difference;
+			
+			ZeroEraser(tempA);
+			ZeroEraser(tempB);
+			break;
+		case false: 
+			freeMemory(tempB); 
+			tempB = difference;
+			
+			ZeroEraser(tempB);
+			break;
+		}
+	}
+
+	tempA->hexString = "";
+	SmallFix(tempA);
+	toHexConverting(tempA, 1);
+	auto* multiplier = toBigIntConverting(tempA->hexString, bitRate);
+	
+	auto* greatCommonDivisor = toBigIntConverting(bitGreatCommonDivisor->hexString, bitRate);
+
+	greatCommonDivisor = LongMul(greatCommonDivisor, multiplier, bitRate, true, 1);
+
+	return greatCommonDivisor;
+}
+
+bigInteger* LeastCommonMultiple(bigInteger* numberA, bigInteger* numberB, bigInteger* greatCommonDivisor, int bitRate)
+{
+	auto* multiplication = LongMul(numberA, numberB, bitRate);
+
+	auto leastCommonMultiple = LongDiv(multiplication, greatCommonDivisor, bitRate, true)->first;
+
+	freeMemory(multiplication);
+
+	return leastCommonMultiple;
 }

@@ -40,4 +40,14 @@ int main()
 	std::cout << "Modular pow: ";
 	auto* modPow = ModPow(numberA, numberB, mod, mu, bitRate);
 	std::cout << modPow->hexString << std::endl;
+
+	std::cout << "Great common divisor: ";
+	auto* gcd = GreatCommonDivisor(numberA, numberB, bitRate);
+	std::cout << gcd->hexString << std::endl;
+
+	std::cout << "Least common multiple: ";
+	auto* lcm = LeastCommonMultiple(numberA, numberB, gcd, bitRate);
+	std::cout << lcm->hexString << std::endl;
+
+	std::cout << "kek" << std::endl;
 }
