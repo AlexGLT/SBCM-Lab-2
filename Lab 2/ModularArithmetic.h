@@ -3,15 +3,15 @@
 
 #include "LongArithmetic.h"
 
-void KillLastDigits(bigInteger* number, long long count);
+void KillLastDigits(std::shared_ptr<bigInteger> number, long long count);
 
-bigInteger* MuCalculus(bigInteger* mod, int bitRate);
-bigInteger* BarrettReduction(bigInteger* number, bigInteger* mod, bigInteger* bigMu, int bitRate);
+std::shared_ptr<bigInteger> MuCalculus(std::shared_ptr<bigInteger> mod, int bitRate);
+std::shared_ptr<bigInteger> BarrettReduction(std::shared_ptr<bigInteger> number, std::shared_ptr<bigInteger> mod, std::shared_ptr<bigInteger> bigMu, int bitRate);
 
-bigInteger* ModAdd(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate);
-bigInteger* ModSub(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate);
-bigInteger* ModMul(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate);
-bigInteger* ModPow(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate);
+std::shared_ptr<bigInteger> ModAdd(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, std::shared_ptr<bigInteger> mod, std::shared_ptr<bigInteger> bigMu, int bitRate);
+std::shared_ptr<bigInteger> ModSub(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, std::shared_ptr<bigInteger> mod, std::shared_ptr<bigInteger> bigMu, int bitRate);
+std::shared_ptr<bigInteger> ModMul(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, std::shared_ptr<bigInteger> mod, std::shared_ptr<bigInteger> bigMu, int bitRate);
+std::shared_ptr<bigInteger> ModPow(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, std::shared_ptr<bigInteger> mod, std::shared_ptr<bigInteger> bigMu, int bitRate);
 
-bigInteger* GreatCommonDivisor(bigInteger* numberA, bigInteger* numberB, int bitRate);
-bigInteger* LeastCommonMultiple(bigInteger* numberA, bigInteger* numberB, bigInteger* greatCommonDivisor, int bitRate);
+std::shared_ptr<bigInteger> GreatCommonDivisor(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, int bitRate);
+std::shared_ptr<bigInteger> LeastCommonMultiple(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, std::shared_ptr<bigInteger> greatCommonDivisor, int bitRate);

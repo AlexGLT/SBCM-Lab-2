@@ -1,36 +1,32 @@
-#include <iostream>
-#include <memory>
-
 struct bigInteger
 {
 	long long size;
 	std::string hexString;
 
-	unsigned int* value;
-	
+	unsigned int *value;
+
 	bigInteger();
 
-	bigInteger(const long long& size);
+	bigInteger(const long long &size);
 
-	bigInteger(const long long& size, const std::string& hexString);
+	bigInteger(const long long &size, const std::string &hexString);
 
 	~bigInteger();
 };
 
-void showBigInteger(bigInteger* number, std::string numberName);
+void showBigInteger(std::shared_ptr<bigInteger> number, std::string numberName = "BigNumber");
 
-void freeMemory(bigInteger* number, bool selfReculc = true);
-void ZeroEraser(bigInteger* number);
-void SmallFix(bigInteger* number);
+void SmallFix(std::shared_ptr<bigInteger> number);
+void ZeroEraser(std::shared_ptr<bigInteger> number);
 
-bigInteger* toBigIntConverting(std::string number, const int& bitRate);
-void toHexConverting(bigInteger* bigNumber, int bitRate);
+std::shared_ptr<bigInteger> toBigIntConverting(const std::string &number, const int &bitRate);
+void toHexConverting(std::shared_ptr<bigInteger> bigNumber, int bitRate);
 
-bool LongComp(bigInteger* numberA, bigInteger* numberB, bool severe);
-bigInteger* LongShiftBitsToHigh(bigInteger* number, unsigned long long shift, bool selfReculc = false);
+bool LongComp(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, bool severe);
+std::shared_ptr<bigInteger> LongShiftBits(std::shared_ptr<bigInteger> number, long long shift);
 
-bigInteger* LongAdd(bigInteger* numberA, bigInteger* numberB, int bitRate, bool text = true, bool selfReculc = false);
-bigInteger* LongSub(bigInteger* numberA, bigInteger* numberB, int bitRate, bool text = true, bool selfReculc = false);
-bigInteger* LongMul(bigInteger* numberA, bigInteger* numberB, int bitRate, bool text = true, bool selfReculc = false);
-std::unique_ptr<std::pair<bigInteger*, bigInteger*>> LongDiv(bigInteger* dividend, bigInteger* divisor, int bitRate, bool onlyWhole = false, bool selfReculc = false);
-bigInteger* LongPower(bigInteger* numberA, bigInteger* numberB, int bitRate);
+std::shared_ptr<bigInteger> LongAdd(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, int bitRate, bool text = true);
+std::shared_ptr<bigInteger> LongSub(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, int bitRate, bool text = true);
+std::shared_ptr<bigInteger> LongMul(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, int bitRate, bool text = true);
+std::shared_ptr<std::pair<std::shared_ptr<bigInteger>, std::shared_ptr<bigInteger>>> LongDiv(std::shared_ptr<bigInteger> dividend, std::shared_ptr<bigInteger> divisor, int bitRate, bool onlyWhole = false);
+std::shared_ptr<bigInteger> LongPow(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, int bitRate);

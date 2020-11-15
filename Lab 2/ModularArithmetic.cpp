@@ -1,25 +1,10 @@
 #include <iostream>
-#include <memory>
 
 #include "ModularArithmetic.h"
 
-void KillLastDigits(bigInteger* number, long long count)
+std::shared_ptr<bigInteger> MuCalculus(std::shared_ptr<bigInteger> mod, int bitRate)
 {
-	long long newNumberSize = number->size - count;
-	auto* newNumberValue = new unsigned int[newNumberSize];
-
-	std::copy(number->value, number->value + newNumberSize, newNumberValue);
-
-	delete[] number->value;
-	number->value = NULL;
-
-	number->size = newNumberSize;
-	number->value = newNumberValue;
-}
-
-bigInteger* MuCalculus(bigInteger* mod, int bitRate)
-{
-	auto* calculusBase = new bigInteger(2 * mod->size + 1);
+	auto calculusBase = std::make_shared<bigInteger>(2 * mod->size + 1);
 	
 	std::fill(&calculusBase->value[1], &calculusBase->value[calculusBase->size], 0);
 	calculusBase->value[0] = 1;
@@ -28,109 +13,85 @@ bigInteger* MuCalculus(bigInteger* mod, int bitRate)
 
 	auto bigMu = LongDiv(calculusBase, mod, bitRate, true)->first;
 
-	freeMemory(calculusBase);
-
 	return bigMu;
 }
 
-bigInteger* BarrettReduction(bigInteger* number, bigInteger* mod, bigInteger* bigMu, int bitRate)
+std::shared_ptr<bigInteger> BarrettReduction(std::shared_ptr<bigInteger> number, std::shared_ptr<bigInteger> mod, std::shared_ptr<bigInteger> bigMu, int bitRate)
 {
-	auto* wholePart = new bigInteger(2 * mod->size);
+	auto wholePart = std::make_shared<bigInteger>(2 * mod->size);
 
 	std::fill(&wholePart->value[0], &wholePart->value[wholePart->size - number->size], 0);
 	std::copy(number->value, number->value + number->size, wholePart->value + wholePart->size - number->size);
 
-	KillLastDigits(wholePart, mod->size - 1);
+	wholePart = LongShiftBits(wholePart, 1 - mod->size);
 
-	wholePart = LongMul(wholePart, bigMu, bitRate, false, 1);
+	wholePart = LongMul(wholePart, bigMu, bitRate, false);
 
-	KillLastDigits(wholePart, mod->size + 1);
+	wholePart = LongShiftBits(wholePart, -1 - mod->size);
 
-	auto* subtractor = LongMul(wholePart, mod, bitRate, false);
-	
-	freeMemory(wholePart);
+	auto subtractor = LongMul(wholePart, mod, bitRate, false);
 
-	auto* remainder = LongSub(number, subtractor, bitRate, false);
-
-	freeMemory(subtractor);
+	auto remainder = LongSub(number, subtractor, bitRate, false);
 
 	while (LongComp(remainder, mod, false))
 	{
-		remainder = LongSub(remainder, mod, bitRate, false, 1);
+		remainder = LongSub(remainder, mod, bitRate, false);
 	}
 
 	return remainder;
 }
 
-bigInteger* ModAdd(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate)
+std::shared_ptr<bigInteger> ModAdd(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, std::shared_ptr<bigInteger> mod, std::shared_ptr<bigInteger> bigMu, int bitRate)
 {
-	auto* numberC = LongAdd(numberA, numberB, bitRate, false);
+	auto numberC = LongAdd(numberA, numberB, bitRate, false);
 
-	auto* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
-
-	freeMemory(numberC);
+	auto modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
 
 	toHexConverting(modRemainder, bitRate);
 
 	return modRemainder;
 }
 
-bigInteger* ModSub(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate)
+std::shared_ptr<bigInteger> ModSub(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, std::shared_ptr<bigInteger> mod, std::shared_ptr<bigInteger> bigMu, int bitRate)
 {
-	auto* numberC = LongSub(numberA, numberB, bitRate, false);
+	auto numberC = LongSub(numberA, numberB, bitRate, false);
 
-	auto* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
-
-	freeMemory(numberC);
+	auto modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
 
 	toHexConverting(modRemainder, bitRate);
 
 	return modRemainder;
 }
 
-bigInteger* ModMul(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate)
+std::shared_ptr<bigInteger> ModMul(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, std::shared_ptr<bigInteger> mod, std::shared_ptr<bigInteger> bigMu, int bitRate)
 {
-	auto* numberC = LongMul(numberA, numberB, bitRate, false);
+	auto numberC = LongMul(numberA, numberB, bitRate, false);
 
-	auto* modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
-
-	freeMemory(numberC);
+	auto modRemainder = BarrettReduction(numberC, mod, bigMu, bitRate);
 
 	toHexConverting(modRemainder, bitRate);
 
 	return modRemainder;
 }
 
-bigInteger* ModPow(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bigInteger* bigMu, int bitRate)
+std::shared_ptr<bigInteger> ModPow(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, std::shared_ptr<bigInteger> mod, std::shared_ptr<bigInteger> bigMu, int bitRate)
 {
-	auto* bitNumberB = toBigIntConverting(numberB->hexString, 1);
+	auto bitNumberB = toBigIntConverting(numberB->hexString, 1);
 
-	auto* modRemainder = new bigInteger();
-	modRemainder->value[0] = static_cast<unsigned int>(1);
+	auto modRemainder = toBigIntConverting("1", bitRate);
 
-	auto* changedNumberA = numberA;
+	auto changedNumberA = numberA;
 
 	for (long long i = bitNumberB->size - 1; i >= 0; i--)
 	{
 		if (bitNumberB->value[i] == 1)
 		{
-			auto* tempC = LongMul(modRemainder, changedNumberA, bitRate, false);
-			
-			modRemainder = BarrettReduction(tempC, mod, bigMu, bitRate);
-
-			freeMemory(tempC);
+			modRemainder = BarrettReduction(LongMul(modRemainder, changedNumberA, bitRate, false), mod, bigMu, bitRate);
 		}
 
-		auto* tempA = LongMul(changedNumberA, changedNumberA, bitRate, false);
-		
-		if (changedNumberA != numberA)
-		{
-			freeMemory(changedNumberA);
-		}
+		auto tempA = LongMul(changedNumberA, changedNumberA, bitRate);
 
 		changedNumberA = BarrettReduction(tempA, mod, bigMu, bitRate);
-
-		freeMemory(tempA);
 	}
 
 	toHexConverting(modRemainder, bitRate);
@@ -138,17 +99,14 @@ bigInteger* ModPow(bigInteger* numberA, bigInteger* numberB, bigInteger* mod, bi
 	return modRemainder;
 }
 
-bigInteger* GreatCommonDivisor(bigInteger* numberA, bigInteger* numberB, int bitRate)
+std::shared_ptr<bigInteger> GreatCommonDivisor(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, int bitRate)
 {
-	auto* bitGreatCommonDivisor = new bigInteger(1);
-	bitGreatCommonDivisor->value[0] = static_cast<unsigned int>(1);
+	auto bitGreatCommonDivisor = toBigIntConverting("1", bitRate);
 
-	auto* two = new bigInteger(1, "2");
-	two->value[0] = static_cast<unsigned int>(2);
-
-	auto* tempA = toBigIntConverting(numberA->hexString, 1);
-	auto* tempB = toBigIntConverting(numberB->hexString, 1);
+	auto tempA = toBigIntConverting(numberA->hexString, 1);
 	ZeroEraser(tempA);
+
+	auto tempB = toBigIntConverting(numberB->hexString, 1);
 	ZeroEraser(tempB);
 
 	int count = 0;
@@ -160,21 +118,23 @@ bigInteger* GreatCommonDivisor(bigInteger* numberA, bigInteger* numberB, int bit
 			count++;
 		}
 		else
+		{
 			break;
+		}
 	}
 	
 	if (count != 0)
 	{
-		KillLastDigits(tempA, count);
-		KillLastDigits(tempB, count);
+		tempA = LongShiftBits(tempA, -count);
+		tempB = LongShiftBits(tempB, -count);
 
-		bitGreatCommonDivisor = LongShiftBitsToHigh(bitGreatCommonDivisor, count, true);
+		bitGreatCommonDivisor = LongShiftBits(bitGreatCommonDivisor, count);
+
+		SmallFix(bitGreatCommonDivisor);
+		toHexConverting(bitGreatCommonDivisor, 1);
 
 		count = 0;
 	}
-
-	SmallFix(bitGreatCommonDivisor);
-	toHexConverting(bitGreatCommonDivisor, 1);
 
 	for (int i = 0; true; i++)
 	{
@@ -183,12 +143,14 @@ bigInteger* GreatCommonDivisor(bigInteger* numberA, bigInteger* numberB, int bit
 			count++;
 		}
 		else
+		{
 			break;
+		}
 	}
 
 	if (count != 0)
 	{
-		KillLastDigits(tempB, count);
+		tempB = LongShiftBits(tempB, -count);
 
 		count = 0;
 	}
@@ -203,63 +165,59 @@ bigInteger* GreatCommonDivisor(bigInteger* numberA, bigInteger* numberB, int bit
 				count++;
 			}
 			else
+			{
 				break;
+			}
 		}
 
 		if (count != 0)
 		{
-			KillLastDigits(tempB, count);
-			
+			tempB = LongShiftBits(tempB, -count);
 
 			count = 0;
 		}
 
-		auto* difference = LongSub(tempA, tempB, 1, false);
+		auto difference = LongSub(tempA, tempB, 1, false);
 
 		if (difference->size == 1 && difference->value[0] == 0)
 		{
-			freeMemory(difference);
 			difference = LongSub(tempB, tempA, 1, false);
 		}
 
-		switch (LongComp(tempA, tempB, false))
+		std::shared_ptr<bigInteger> minimum;
+
+		if (LongComp(tempA, tempB, false))
 		{
-		case true: 
-			freeMemory(tempA); 
-			tempA = tempB;
-			tempB = difference;
-			
-			ZeroEraser(tempA);
-			ZeroEraser(tempB);
-			break;
-		case false: 
-			freeMemory(tempB); 
-			tempB = difference;
-			
-			ZeroEraser(tempB);
-			break;
+			minimum = tempB;
 		}
+		else
+		{
+			minimum = tempA;
+		}
+
+		ZeroEraser(difference);
+
+		tempA = minimum;
+		tempB = difference;
 	}
 
-	tempA->hexString = "";
 	SmallFix(tempA);
 	toHexConverting(tempA, 1);
-	auto* multiplier = toBigIntConverting(tempA->hexString, bitRate);
 	
-	auto* greatCommonDivisor = toBigIntConverting(bitGreatCommonDivisor->hexString, bitRate);
+	auto multiplier = toBigIntConverting(tempA->hexString, bitRate);
+	
+	auto greatCommonDivisor = toBigIntConverting(bitGreatCommonDivisor->hexString, bitRate);
 
-	greatCommonDivisor = LongMul(greatCommonDivisor, multiplier, bitRate, true, 1);
+	greatCommonDivisor = LongMul(greatCommonDivisor, multiplier, bitRate, true);
 
 	return greatCommonDivisor;
 }
 
-bigInteger* LeastCommonMultiple(bigInteger* numberA, bigInteger* numberB, bigInteger* greatCommonDivisor, int bitRate)
+std::shared_ptr<bigInteger> LeastCommonMultiple(std::shared_ptr<bigInteger> numberA, std::shared_ptr<bigInteger> numberB, std::shared_ptr<bigInteger> greatCommonDivisor, int bitRate)
 {
-	auto* multiplication = LongMul(numberA, numberB, bitRate);
+	auto multiplication = LongMul(numberA, numberB, bitRate);
 
 	auto leastCommonMultiple = LongDiv(multiplication, greatCommonDivisor, bitRate, true)->first;
-
-	freeMemory(multiplication);
 
 	return leastCommonMultiple;
 }
